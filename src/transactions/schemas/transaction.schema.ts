@@ -2,12 +2,12 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
 @Schema({ timestamps: true })
-export class Transaction extends Document {
+export class Transaction {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   userId: Types.ObjectId;
 
-  @Prop({ required: true })
-  type: 'income' | 'expense';
+  @Prop({ required: true, enum: ['income', 'expense'] })
+  type: string;
 
   @Prop({ required: true })
   amount: number;
