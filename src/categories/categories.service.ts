@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Category } from './schema/category.schema';
@@ -36,4 +36,46 @@ export class CategoriesService {
       userId: new Types.ObjectId(userId),
     });
   }
+
+  async findByType(userId: string, type: 'income' | 'expense'): Promise<Category[]> {
+  return this.categoryModel.find({ userId: new Types.ObjectId(userId), type }).sort({ priority: 1 }).exec();
+}
+
+async getStats(userId: string) {
+  if (!Types.ObjectId.isValid(userId)) {
+    throw new BadRequestException('Invalid userId');
+  }
+
+  const objUserId = new Types.ObjectId(userId);
+
+  return this.categoryModel.aggregate([
+    { $match: { userId: objUserId } },
+    {
+      $lookup: {
+        from: 'transactions', 
+        localField: '_id',
+        foreignField: 'categoryId',
+        as: 'transactions',
+      },
+    },
+    {
+      $addFields: {
+        totalAmount: { $sum: '$transactions.amount' },
+        count: { $size: '$transactions' },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        type: 1,
+        totalAmount: 1,
+        count: 1,
+      },
+    },
+    { $sort: { name: 1 } },
+  ]);
+}
+
+
 }

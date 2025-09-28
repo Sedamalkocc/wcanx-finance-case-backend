@@ -19,23 +19,40 @@ import { CreateTransactionDto } from './dto/create-transaction.dto';
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
-@Post()
-async create(@Req() req, @Body() dto: CreateTransactionDto) {
-  return this.transactionsService.create(req.user.userId, dto);
-}
+  @Post()
+  async create(@Req() req, @Body() dto: CreateTransactionDto) {
+    return this.transactionsService.create(req.user.userId, dto);
+  }
 
+  @Get('filter')
+  async filter(
+    @Req() req,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('type') type?: 'income' | 'expense',
+    @Query('categoryId') categoryId?: string,
+  ) {
+    return this.transactionsService.filter(
+      req.user.userId,
+      startDate,
+      endDate,
+      type,
+      categoryId,
+    );
+  }
+
+  @Get('totals')
+async totals(
+  @Req() req,
+  @Query('startDate') startDate?: string,
+  @Query('endDate') endDate?: string,
+) {
+  return this.transactionsService.totals(req.user.userId, startDate, endDate);
+}
 
   @Get()
   async findAll(@Req() req) {
     return this.transactionsService.findAll(req.user.userId);
-  }
-
-  @Get('summary')
-  async getSummary(
-    @Req() req,
-    @Query('period') period: 'weekly' | 'monthly',
-  ) {
-    return this.transactionsService.getSummary(req.user.userId, period);
   }
 
   @Get(':id')
@@ -51,5 +68,13 @@ async create(@Req() req, @Body() dto: CreateTransactionDto) {
   @Delete(':id')
   async remove(@Req() req, @Param('id') id: string) {
     return this.transactionsService.remove(req.user.userId, id);
+  }
+
+  @Get('summary')
+  async getSummary(
+    @Req() req,
+    @Query('period') period: 'weekly' | 'monthly',
+  ) {
+    return this.transactionsService.getSummary(req.user.userId, period);
   }
 }

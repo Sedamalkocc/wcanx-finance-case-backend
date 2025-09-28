@@ -158,4 +158,57 @@ export class TransactionsService {
       { $sort: { totalAmount: -1 } },
     ]);
   }
+
+async filter(
+  userId: string,
+  startDate?: string,
+  endDate?: string,
+  type?: 'income' | 'expense',
+  categoryId?: string,
+) {
+  if (!Types.ObjectId.isValid(userId)) throw new BadRequestException('Invalid userId');
+
+  const query: any = { userId: new Types.ObjectId(userId) };
+
+  if (startDate || endDate) {
+    query.date = {};
+    if (startDate) query.date.$gte = new Date(startDate);
+    if (endDate) query.date.$lte = new Date(endDate);
+  }
+
+  if (type) query.type = type;
+
+  if (categoryId) {
+    if (!Types.ObjectId.isValid(categoryId)) throw new BadRequestException('Invalid category id');
+    query.categoryId = new Types.ObjectId(categoryId);
+  }
+
+  return this.transactionModel.find(query).sort({ date: -1 }).exec();
+}
+
+async totals(userId: string, startDate?: string, endDate?: string) {
+  const match: any = { userId: new Types.ObjectId(userId) };
+  if (startDate || endDate) {
+    match.date = {};
+    if (startDate) match.date.$gte = new Date(startDate);
+    if (endDate) match.date.$lte = new Date(endDate);
+  }
+
+  const result = await this.transactionModel.aggregate([
+    { $match: match },
+    {
+      $group: {
+        _id: '$type',
+        total: { $sum: '$amount' },
+      },
+    },
+  ]);
+
+  const totals = { income: 0, expense: 0 };
+  result.forEach(r => {
+    totals[r._id] = r.total;
+  });
+  return totals;
+}
+
 }

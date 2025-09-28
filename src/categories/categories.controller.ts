@@ -12,7 +12,15 @@ export class CategoriesController {
 async create(@Req() req, @Body() dto: CreateCategoryDto) {
   return this.categoriesService.create(req.user.userId, dto);
 }
+@Get('type/:type')
+async findByType(@Req() req, @Param('type') type: 'income' | 'expense') {
+  return this.categoriesService.findByType(req.user.userId, type);
+}
 
+@Get('stats')
+async getStats(@Req() req) {
+  return this.categoriesService.getStats(req.user.userId);
+}
 
   @Get()
   async findAll(@Req() req) {
