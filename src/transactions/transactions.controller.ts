@@ -24,22 +24,21 @@ export class TransactionsController {
     return this.transactionsService.create(req.user.userId, dto);
   }
 
-  @Get('filter')
-  async filter(
-    @Req() req,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-    @Query('type') type?: 'income' | 'expense',
-    @Query('categoryId') categoryId?: string,
-  ) {
-    return this.transactionsService.filter(
-      req.user.userId,
-      startDate,
-      endDate,
-      type,
-      categoryId,
-    );
-  }
+@Get('filter')
+async filter(
+  @Req() req,
+  @Query('date') date?: string,
+  @Query('categoryName') categoryName?: string,
+  @Query('type') type?: 'income' | 'expense',
+) {
+  return this.transactionsService.filterByDateAndCategory(
+    req.user.userId,
+    date,
+    categoryName,
+    type,
+  );
+}
+
 
   @Get('totals')
 async totals(

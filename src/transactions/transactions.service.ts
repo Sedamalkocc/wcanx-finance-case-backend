@@ -159,31 +159,48 @@ export class TransactionsService {
     ]);
   }
 
-async filter(
+async filterByDateAndCategory(
   userId: string,
-  startDate?: string,
-  endDate?: string,
+  date?: string,
+  categoryName?: string,
   type?: 'income' | 'expense',
-  categoryId?: string,
 ) {
   if (!Types.ObjectId.isValid(userId)) throw new BadRequestException('Invalid userId');
 
   const query: any = { userId: new Types.ObjectId(userId) };
 
-  if (startDate || endDate) {
-    query.date = {};
-    if (startDate) query.date.$gte = new Date(startDate);
-    if (endDate) query.date.$lte = new Date(endDate);
+  if (date) {
+    const day = new Date(date);
+    const startOfDay = new Date(day);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(day);
+    endOfDay.setHours(23, 59, 59, 999);
+    query.date = { $gte: startOfDay, $lte: endOfDay };
   }
 
   if (type) query.type = type;
 
-  if (categoryId) {
-    if (!Types.ObjectId.isValid(categoryId)) throw new BadRequestException('Invalid category id');
-    query.categoryId = new Types.ObjectId(categoryId);
+  // Eğer kategori adı varsa $lookup ile filtrele
+  const pipeline: any = [
+    { $match: query },
+    {
+      $lookup: {
+        from: 'categories',
+        localField: 'categoryId',
+        foreignField: '_id',
+        as: 'category',
+      },
+    },
+    { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
+  ];
+
+  if (categoryName) {
+    pipeline.push({
+      $match: { 'category.name': categoryName }
+    });
   }
 
-  return this.transactionModel.find(query).sort({ date: -1 }).exec();
+  return this.transactionModel.aggregate(pipeline);
 }
 
 async totals(userId: string, startDate?: string, endDate?: string) {
