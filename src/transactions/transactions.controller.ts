@@ -12,16 +12,18 @@ import {
 } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { AuthGuard } from '@nestjs/passport';
+import { CreateTransactionDto } from './dto/create-transaction.dto';
 
 @Controller('transactions')
 @UseGuards(AuthGuard('jwt'))
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
-  @Post()
-  async create(@Req() req, @Body() body: any) {
-    return this.transactionsService.create(req.user.userId, body);
-  }
+@Post()
+async create(@Req() req, @Body() dto: CreateTransactionDto) {
+  return this.transactionsService.create(req.user.userId, dto);
+}
+
 
   @Get()
   async findAll(@Req() req) {

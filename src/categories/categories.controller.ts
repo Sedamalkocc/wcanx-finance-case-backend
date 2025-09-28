@@ -1,6 +1,7 @@
 import { Controller, Post, Get, Put, Delete, Body, Param, UseGuards, Req } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { AuthGuard } from '@nestjs/passport';
+import { CreateCategoryDto } from './dto/create-category.dto';
 
 @Controller('categories')
 @UseGuards(AuthGuard('jwt'))
@@ -8,9 +9,10 @@ export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Post()
-  async create(@Req() req, @Body() body: any) {
-    return this.categoriesService.create(req.user.userId, body);
-  }
+async create(@Req() req, @Body() dto: CreateCategoryDto) {
+  return this.categoriesService.create(req.user.userId, dto);
+}
+
 
   @Get()
   async findAll(@Req() req) {
