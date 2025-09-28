@@ -2,6 +2,7 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Transaction } from './schemas/transaction.schema';
+import { Category } from '../categories/schema/category.schema';
 
 @Injectable()
 export class TransactionsService {
@@ -25,17 +26,25 @@ export class TransactionsService {
     return newTransaction.save();
   }
 
-  async findAll(userId: string): Promise<Transaction[]> {
-    if (!Types.ObjectId.isValid(userId)) {
-      throw new BadRequestException('Invalid user id');
-    }
-
-    return this.transactionModel
-      .find({ userId: new Types.ObjectId(userId) })
-      .sort({ date: -1 })
-      .populate('categoryId')
-      .exec();
+async findAll(userId: string): Promise<any[]> {
+  if (!Types.ObjectId.isValid(userId)) {
+    throw new BadRequestException('Invalid user id');
   }
+
+  const transactions = await this.transactionModel
+    .find({ userId: new Types.ObjectId(userId) })
+    .sort({ date: -1 })
+    .populate<{ categoryId: Category }>('categoryId')
+    .lean()
+    .exec();
+
+  return transactions.map(tx => ({
+    ...tx,
+    categoryName: tx.categoryId?.name || null,
+    categoryColor: tx.categoryId?.color || null,
+    categoryId: tx.categoryId?._id || null,
+  }));
+}
 
   async findOne(userId: string, id: string): Promise<Transaction> {
     if (!Types.ObjectId.isValid(id) || !Types.ObjectId.isValid(userId)) {
