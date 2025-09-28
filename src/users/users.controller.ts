@@ -17,6 +17,11 @@ export class UsersController {
     return this.usersService.findAllUsers();
   }
 
+  @Get('me')
+async getMe(@Req() req) {
+  return this.usersService.findByEmail(req.user.email);
+}
+
   @Get(':email')
   async getByEmail(@Param('email') email: string, @Req() req) {
     if (req.user.email !== email) {
