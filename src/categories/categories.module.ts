@@ -6,6 +6,6 @@ import { Category,CategorySchema } from './schema/category.schema';
 @Module({
   imports: [MongooseModule.forFeature([{ name: Category.name, schema: CategorySchema }])],
   providers: [CategoriesService],
-  exports: [CategoriesService], // ✅ export et ki seed script bulabilsin
+  exports: [CategoriesService],
 })
 export class CategoriesModule {}

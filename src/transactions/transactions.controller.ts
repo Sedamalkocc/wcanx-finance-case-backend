@@ -28,10 +28,19 @@ export class TransactionsController {
     return this.transactionsService.findAll(req.user.userId);
   }
 
-@Get(':id')
-async findOne(@Req() req, @Param('id') id: string) {
-  return this.transactionsService.findOne(req.user.userId, id);
-}
+  @Get('summary')
+  async getSummary(
+    @Req() req,
+    @Query('period') period: 'weekly' | 'monthly',
+  ) {
+    return this.transactionsService.getSummary(req.user.userId, period);
+  }
+
+  @Get(':id')
+  async findOne(@Req() req, @Param('id') id: string) {
+    return this.transactionsService.findOne(req.user.userId, id);
+  }
+
   @Put(':id')
   async update(@Req() req, @Param('id') id: string, @Body() body: any) {
     return this.transactionsService.update(req.user.userId, id, body);
@@ -41,10 +50,4 @@ async findOne(@Req() req, @Param('id') id: string) {
   async remove(@Req() req, @Param('id') id: string) {
     return this.transactionsService.remove(req.user.userId, id);
   }
-
-@Get('summary')
-async getSummary(@Req() req, @Query('period') period: 'weekly' | 'monthly') {
-  return this.transactionsService.getSummary(req.user.userId, period);
-}
-
 }
