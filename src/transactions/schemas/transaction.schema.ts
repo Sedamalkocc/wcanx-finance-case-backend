@@ -1,24 +1,25 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { Category } from 'src/categories/schema/category.schema';
 
 @Schema({ timestamps: true })
-export class Transaction {
+export class Transaction extends Document {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   userId: Types.ObjectId;
 
-  @Prop({ required: true, enum: ['income', 'expense'] })
+  @Prop({ type: String, enum: ['income', 'expense'], required: true })
   type: string;
 
-  @Prop({ required: true })
+  @Prop({ type: Number, required: true })
   amount: number;
 
-  @Prop()
-  category: string;
+  @Prop({ type: Types.ObjectId, ref: 'Category', required: true })
+  categoryId: Types.ObjectId;
 
-  @Prop()
-  note?: string;
+  @Prop({ type: String })
+  note: string;
 
-  @Prop({ default: Date.now })
+  @Prop({ type: Date, default: Date.now })
   date: Date;
 }
 

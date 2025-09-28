@@ -8,6 +8,7 @@ import {
   Param,
   UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -17,28 +18,33 @@ import { AuthGuard } from '@nestjs/passport';
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
-@Post()
-async create(@Req() req, @Body() body: any) {
-  return this.transactionsService.create(req.user.sub, body);
-}
+  @Post()
+  async create(@Req() req, @Body() body: any) {
+    return this.transactionsService.create(req.user.userId, body);
+  }
 
-@Get()
-async findAll(@Req() req) {
-  return this.transactionsService.findAll(req.user.sub);
-}
+  @Get()
+  async findAll(@Req() req) {
+    return this.transactionsService.findAll(req.user.userId);
+  }
 
 @Get(':id')
 async findOne(@Req() req, @Param('id') id: string) {
-  return this.transactionsService.findOne(req.user.sub, id);
+  return this.transactionsService.findOne(req.user.userId, id);
+}
+  @Put(':id')
+  async update(@Req() req, @Param('id') id: string, @Body() body: any) {
+    return this.transactionsService.update(req.user.userId, id, body);
+  }
+
+  @Delete(':id')
+  async remove(@Req() req, @Param('id') id: string) {
+    return this.transactionsService.remove(req.user.userId, id);
+  }
+
+@Get('summary')
+async getSummary(@Req() req, @Query('period') period: 'weekly' | 'monthly') {
+  return this.transactionsService.getSummary(req.user.userId, period);
 }
 
-@Put(':id')
-async update(@Req() req, @Param('id') id: string, @Body() body: any) {
-  return this.transactionsService.update(req.user.sub, id, body);
-}
-
-@Delete(':id')
-async remove(@Req() req, @Param('id') id: string) {
-  return this.transactionsService.remove(req.user.sub, id);
-}
 }
