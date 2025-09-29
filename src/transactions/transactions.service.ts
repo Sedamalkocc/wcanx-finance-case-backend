@@ -104,69 +104,58 @@ async findAll(userId: string): Promise<any[]> {
     return deleted;
   }
 
-  async getSummary(userId: string, period: 'weekly' | 'monthly' = 'monthly') {
-    if (!Types.ObjectId.isValid(userId)) {
-      throw new BadRequestException('Invalid userId');
-    }
-    const objUserId = new Types.ObjectId(userId);
+async getSummary(userId: string, period: 'weekly' | 'monthly' = 'monthly') {
+  const now = new Date();
+  let startDate: Date;
+  let endDate: Date;
 
-    const now = new Date();
-    let startDate: Date;
-    let endDate: Date;
-
-    if (period === 'weekly') {
-      const currentDay = now.getDay(); // 0=Sunday
-      const diffToMonday = currentDay === 0 ? -6 : 1 - currentDay;
-
-      startDate = new Date(now);
-      startDate.setDate(now.getDate() + diffToMonday);
-      startDate.setHours(0, 0, 0, 0);
-
-      endDate = new Date(startDate);
-      endDate.setDate(startDate.getDate() + 6);
-      endDate.setHours(23, 59, 59, 999);
-    } else {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-    }
-
-    return this.transactionModel.aggregate([
-      {
-        $match: {
-          userId: objUserId,
-          date: { $gte: startDate, $lte: endDate },
-        },
-      },
-      {
-        $lookup: {
-          from: 'categories',
-          localField: 'categoryId',
-          foreignField: '_id',
-          as: 'category',
-        },
-      },
-      { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
-      {
-        $group: {
-          _id: '$category._id',
-          totalAmount: { $sum: '$amount' },
-          type: { $first: '$type' },
-          categoryName: { $first: '$category.name' },
-          color: { $first: '$category.color' },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          categoryName: 1,
-          type: 1,
-          color: 1,
-          totalAmount: 1,
-        },
-      },
-      { $sort: { totalAmount: -1 } },
-    ]);
+  if (period === 'weekly') {
+    const day = now.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    startDate = new Date(now);
+    startDate.setDate(now.getDate() + diff);
+    startDate.setHours(0, 0, 0, 0);
+    endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 6);
+    endDate.setHours(23, 59, 59, 999);
+  } else {
+    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
   }
+
+  return this.transactionModel.aggregate([
+    { $match: { userId: new Types.ObjectId(userId), date: { $gte: startDate, $lte: endDate } } },
+    {
+      $lookup: {
+        from: 'categories',
+        localField: 'categoryId',
+        foreignField: '_id',
+        as: 'category',
+      },
+    },
+    { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
+    {
+      $group: {
+        _id: '$category._id',
+        totalAmount: { $sum: '$amount' },
+        type: { $first: '$type' },
+        categoryName: { $first: '$category.name' },
+        color: { $first: '$category.color' },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        categoryName: 1,
+        type: 1,
+        color: 1,
+        totalAmount: 1,
+      },
+    },
+    { $sort: { totalAmount: -1 } },
+  ]);
+}
+
 
 async filterByDateAndCategory(
   userId: string,

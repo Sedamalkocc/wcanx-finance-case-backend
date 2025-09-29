@@ -6,6 +6,13 @@ import { Category } from './schema/category.schema';
 @Injectable()
 export class CategoriesService {
   constructor(@InjectModel(Category.name) private categoryModel: Model<Category>) {}
+private defaultCategories = [
+  { name: 'Maaş', type: 'income', priority: 1 },
+  { name: 'Bonus', type: 'income', priority: 2 },
+  { name: 'Yemek', type: 'expense', priority: 1 },
+  { name: 'Ulaşım', type: 'expense', priority: 2 },
+  { name: 'Eğlence', type: 'expense', priority: 5 },
+];
 
   private priorityColors: Record<number, string> = {
     1: "#b71c1c",   // koyu kırmızı
@@ -14,6 +21,17 @@ export class CategoriesService {
     4: "#ffc107",   // sarı
     5: "#4caf50",   // yeşil
   };
+ async getDefaultAndUserCategories(userId: string): Promise<Category[]> {
+  const existing = await this.findAll(userId);
+
+  for (const cat of this.defaultCategories) {
+    if (!existing.find(e => e.name === cat.name && e.type === cat.type)) {
+      await this.create(userId, cat);
+    }
+  }
+
+  return this.findAll(userId);
+}
 
   async create(userId: string, dto: any): Promise<Category> {
     const priority = dto.priority ?? 1;

@@ -8,6 +8,12 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
+    @Get()
+  async getAll(@Req() req) {
+    const userId = req.user.userId;
+    return this.categoriesService.getDefaultAndUserCategories(userId);
+  }
+
   @Post()
 async create(@Req() req, @Body() dto: CreateCategoryDto) {
   return this.categoriesService.create(req.user.userId, dto);

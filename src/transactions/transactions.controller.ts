@@ -1,15 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Body,
-  Param,
-  UseGuards,
-  Req,
-  Query,
-} from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Req, Query, BadRequestException } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { AuthGuard } from '@nestjs/passport';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
@@ -24,30 +13,15 @@ export class TransactionsController {
     return this.transactionsService.create(req.user.userId, dto);
   }
 
-@Get('filter')
-async filter(
-  @Req() req,
-  @Query('date') date?: string,
-  @Query('categoryName') categoryName?: string,
-  @Query('type') type?: 'income' | 'expense',
-) {
-  return this.transactionsService.filterByDateAndCategory(
-    req.user.userId,
-    date,
-    categoryName,
-    type,
-  );
-}
-
+  @Get('filter')
+  async filter(@Req() req, @Query('date') date?: string, @Query('categoryName') categoryName?: string, @Query('type') type?: 'income' | 'expense') {
+    return this.transactionsService.filterByDateAndCategory(req.user.userId, date, categoryName, type);
+  }
 
   @Get('totals')
-async totals(
-  @Req() req,
-  @Query('startDate') startDate?: string,
-  @Query('endDate') endDate?: string,
-) {
-  return this.transactionsService.totals(req.user.userId, startDate, endDate);
-}
+  async totals(@Req() req, @Query('startDate') startDate?: string, @Query('endDate') endDate?: string) {
+    return this.transactionsService.totals(req.user.userId, startDate, endDate);
+  }
 
   @Get()
   async findAll(@Req() req) {
@@ -69,10 +43,10 @@ async totals(
     return this.transactionsService.remove(req.user.userId, id);
   }
 
-  @Get('summary')
+ @Get('summary')
   async getSummary(
     @Req() req,
-    @Query('period') period: 'weekly' | 'monthly',
+    @Query('period') period: 'weekly' | 'monthly' = 'monthly',
   ) {
     return this.transactionsService.getSummary(req.user.userId, period);
   }
